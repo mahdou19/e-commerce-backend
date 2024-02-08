@@ -6,6 +6,8 @@ const bodyParser = require("body-parser");
 
 const app = express();
 
+require("./Database");
+
 const port = process.env.PORT;
 
 const authRoute = require("./routes/auth");
