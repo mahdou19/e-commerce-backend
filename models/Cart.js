@@ -25,6 +25,9 @@ const CartSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    total: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );

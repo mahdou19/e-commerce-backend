@@ -49,6 +49,7 @@ router.post("/cart", isAuth, async (req, res) => {
       console.log(item);
       total += item.quantity * item.price;
     });
+    cart.total = total;
 
     await cart.save();
     res.status(201).json({ cart, total });
@@ -63,16 +64,55 @@ router.get("/cart", isAuth, async (req, res) => {
   console.log(userId);
   try {
     let cart = await Cart.findOne({ userId });
-    if (cart && cart.products.length > 0) {
+    if (cart) {
       res
         .status(201)
         .send({ message: "suceess to retrieved cart", data: cart });
-    } else {
-      res.send(null);
     }
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
   }
 });
+router.delete("/cart", isAuth, async (req, res) => {
+  const userId = req.user._id;
+  const productId = req.query.productId;
+
+  try {
+    let cart = await Cart.findOne({ userId });
+
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+
+    if (productId) {
+      const productIndex = cart.products.findIndex(
+        (item) => item.productId == productId
+      );
+
+      if (productIndex > -1) {
+        cart.products.splice(productIndex, 1);
+      } else {
+        return res.status(404).json({ message: "Product not found in cart" });
+      }
+    } else {
+      cart.products = [];
+    }
+
+    cart.total = cart.products.reduce(
+      (acc, item) => acc + item.quantity * item.price,
+      0
+    );
+
+    await cart.save();
+    res.status(200).json({
+      message: productId ? "Product removed from cart" : "Cart emptied",
+      data: cart,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("An error occurred");
+  }
+});
+
 module.exports = router;
