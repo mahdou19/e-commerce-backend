@@ -4,7 +4,16 @@ const router = require("express").Router();
 const { isAuth } = require("../middlewares/auth.middleware");
 
 router.post("/cart", isAuth, async (req, res) => {
-  const { productId, quantity, price } = req.body;
+  const {
+    productId,
+    quantity,
+    price,
+    title,
+    category,
+    image,
+    description,
+    size,
+  } = req.body;
   const userId = req.user._id;
 
   try {
@@ -21,7 +30,18 @@ router.post("/cart", isAuth, async (req, res) => {
     } else {
       cart = new Cart({
         userId,
-        products: [{ productId, quantity, price }],
+        products: [
+          {
+            productId,
+            quantity,
+            price,
+            title,
+            category,
+            image,
+            description,
+            size,
+          },
+        ],
       });
     }
 
