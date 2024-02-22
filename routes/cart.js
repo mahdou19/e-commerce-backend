@@ -15,6 +15,7 @@ router.post("/cart", isAuth, async (req, res) => {
     size,
   } = req.body;
   const userId = req.user._id;
+  console.log("req.body ", req.body);
 
   try {
     let cart = await Cart.findOne({ userId });
@@ -25,7 +26,16 @@ router.post("/cart", isAuth, async (req, res) => {
       if (itemIndex > -1) {
         cart.products[itemIndex].quantity += quantity;
       } else {
-        cart.products.push({ productId, quantity, price });
+        cart.products.push({
+          productId,
+          quantity,
+          price,
+          title,
+          category,
+          image,
+          description,
+          size,
+        });
       }
     } else {
       cart = new Cart({
@@ -46,7 +56,6 @@ router.post("/cart", isAuth, async (req, res) => {
     }
 
     cart.products.forEach((item) => {
-      console.log(item);
       total += item.quantity * item.price;
     });
     cart.total = total;
