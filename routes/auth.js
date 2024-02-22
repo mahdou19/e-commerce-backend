@@ -7,18 +7,22 @@ const secret = process.env.SECRET_KEY;
 
 router.post("/register", async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
+  if (!email || !password || !username || !confirmPassword)
+    return res.status(400).json({
+      message: "email, username, password, confirmPassword is required !",
+    });
 
   const hashedPassword = await hashPassword(password);
   const findUser = await User.findOne({ email });
   if (findUser)
     return res.status(400).json({
-      error: "Email user already exist ! ",
+      message: "Email user already exist ! ",
     });
 
   const match = await comparePassword(confirmPassword, hashedPassword);
   if (!match)
     return res.status(400).json({
-      error: "Password not match ! ",
+      message: "Password not match ! ",
     });
 
   const newUser = new User({
@@ -40,7 +44,12 @@ router.post("/register", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, tokens } = req.body;
+
+  if (!email || !password)
+    return res.status(400).json({
+      message: "email and password is required ! ",
+    });
 
   const findUser = await User.findOne({ email });
 
@@ -51,21 +60,36 @@ router.post("/login", async (req, res) => {
 
   if (!passwordMatch)
     return res.status(400).json({
-      error: "Password not match ! ",
+      message: "Password not match ! ",
     });
 
   const token = jwt.sign({ id: findUser._id }, secret, {
-    expiresIn: "3h",
+    expiresIn: "8h",
   });
 
   res.status(201).json({
-    message: "user ",
+    message: "user logged",
     data: {
       userId: findUser._id,
       username: findUser.username,
       token,
     },
   });
+});
+
+router.get("/loggout", async (req, res) => {
+  if (req.headers && req.headers.authorization) {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Authorization fail!" });
+    }
+
+    return res.json({ success: true, message: "Sign out successfully!" });
+  } else {
+    res.json({ success: false, message: "not token" });
+  }
 });
 
 module.exports = router;
